@@ -38,6 +38,13 @@ const handleSearchClear = () => {
   mapRef.value?.clearSearchMarker()
 }
 
+// 导航到搜索结果
+const handleNavigateTo = () => {
+  if (!searchResult.value) return
+  handleMeasureClear()
+  routePanelRef.value?.navigateTo(searchResult.value)
+}
+
 // 定位
 const handleLocate = async () => {
   locationBtnRef.value?.setLoading(true)
@@ -107,6 +114,15 @@ const handleClearRoute = () => {
     <!-- 顶部控制栏 -->
     <div class="top-controls">
       <SearchBox @select="handleSearchSelect" @clear="handleSearchClear" />
+      <transition name="slide-in">
+        <button
+          v-if="searchResult"
+          class="navigate-btn"
+          @click="handleNavigateTo"
+        >
+          🚀 到这去
+        </button>
+      </transition>
     </div>
 
     <!-- 右侧工具栏 -->
@@ -147,6 +163,38 @@ const handleClearRoute = () => {
   z-index: 1000;
   display: flex;
   align-items: flex-start;
+  gap: 10px;
+}
+
+.navigate-btn {
+  padding: 12px 20px;
+  background: #FF6B35;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.4);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.navigate-btn:hover {
+  background: #e55a25;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.5);
+  transform: translateY(-1px);
+}
+
+/* 滑入动画 */
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: all 0.25s ease;
+}
+.slide-in-enter-from,
+.slide-in-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
 }
 
 .top-controls :deep(.search-box) {

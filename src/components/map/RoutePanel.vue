@@ -196,7 +196,33 @@ watch(() => props.mapClickCoord, async (coord) => {
 
 defineExpose({
   showPanel,
-  closePanel: () => { showPanel.value = false; activeInput.value = null }
+  closePanel: () => { showPanel.value = false; activeInput.value = null },
+  // 直接导航到目标地点（从当前位置出发）
+  navigateTo: async (place) => {
+    showPanel.value = true
+    activeInput.value = null
+    emit('open')
+
+    // 填入终点
+    endCoord.value = [place.lat, place.lng]
+    endInput.value = place.shortName || place.name?.split(',')[0] || '目标地点'
+
+    // 填入起点（当前位置）
+    if (props.currentLocation) {
+      startCoord.value = [...props.currentLocation]
+      const address = await reverseGeocode(props.currentLocation[0], props.currentLocation[1])
+      startInput.value = address?.shortName || '当前位置'
+    } else {
+      startCoord.value = null
+      startInput.value = ''
+      errorMsg.value = '请先获取当前位置'
+      setTimeout(() => errorMsg.value = '', 3000)
+      return
+    }
+
+    // 自动规划路线
+    await planRoute()
+  }
 })
 </script>
 
