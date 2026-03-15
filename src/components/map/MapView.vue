@@ -50,20 +50,53 @@
       <!-- 路线起点和终点 -->
       <l-marker v-if="routeStart" :lat-lng="routeStart" :icon="startIcon">
         <l-popup>
-          <div class="popup-content">
-            <strong>🚩 起点</strong>
-          </div>
+          <div class="popup-content"><strong>🚩 起点</strong></div>
         </l-popup>
       </l-marker>
 
       <l-marker v-if="routeEnd" :lat-lng="routeEnd" :icon="endIcon">
         <l-popup>
-          <div class="popup-content">
-            <strong>🏁 终点</strong>
-          </div>
+          <div class="popup-content"><strong>🏁 终点</strong></div>
         </l-popup>
       </l-marker>
     </l-map>
+
+    <!-- 定位权限提示弹窗 -->
+    <transition name="fade">
+      <div v-if="permissionDenied" class="permission-overlay">
+        <div class="permission-dialog">
+          <div class="permission-icon">📍</div>
+          <h3>需要位置权限</h3>
+          <p>请在浏览器地址栏点击锁形图标，允许访问位置信息，然后刷新页面。</p>
+          <div class="permission-steps">
+            <div class="step">
+              <span class="step-num">1</span>
+              <span>点击地址栏左侧的 🔒 图标</span>
+            </div>
+            <div class="step">
+              <span class="step-num">2</span>
+              <span>将"位置"权限设置为"允许"</span>
+            </div>
+            <div class="step">
+              <span class="step-num">3</span>
+              <span>刷新页面重新定位</span>
+            </div>
+          </div>
+          <div class="permission-actions">
+            <button class="btn-retry" @click="retryLocate">重试定位</button>
+            <button class="btn-dismiss" @click="permissionDenied = false">稍后再说</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 定位中加载遮罩 -->
+    <transition name="fade">
+      <div v-if="locating" class="locating-toast">
+        <span class="locating-spinner"></span>
+        正在获取位置...
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -103,6 +136,10 @@ const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">Op
 // 当前位置
 const currentLocation = ref(null)
 const currentAddress = ref('')
+
+// 定位状态
+const locating = ref(false)
+const permissionDenied = ref(false)
 
 // 搜索标记
 const searchMarker = ref(null)
@@ -162,8 +199,12 @@ const getCurrentLocation = () => {
       return
     }
 
+    locating.value = true
+    permissionDenied.value = false
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        locating.value = false
         const { latitude, longitude } = position.coords
         currentLocation.value = [latitude, longitude]
         center.value = [latitude, longitude]
@@ -172,7 +213,11 @@ const getCurrentLocation = () => {
         resolve({ lat: latitude, lng: longitude })
       },
       (error) => {
+        locating.value = false
         console.error('定位失败:', error)
+        if (error.code === error.PERMISSION_DENIED) {
+          permissionDenied.value = true
+        }
         reject(error)
       },
       {
@@ -182,6 +227,12 @@ const getCurrentLocation = () => {
       }
     )
   })
+}
+
+// 重试定位
+const retryLocate = () => {
+  permissionDenied.value = false
+  getCurrentLocation().catch(() => {})
 }
 
 // 地图点击处理
@@ -275,6 +326,9 @@ onMounted(() => {
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
   })
+
+  // 页面加载后自动定位
+  getCurrentLocation().catch(() => {})
 })
 </script>
 
@@ -305,5 +359,160 @@ onMounted(() => {
 :deep(.custom-marker) {
   background: transparent !important;
   border: none !important;
+}
+
+/* 权限提示弹窗 */
+.permission-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.permission-dialog {
+  background: white;
+  border-radius: 16px;
+  padding: 32px 28px;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.permission-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.permission-dialog h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.permission-dialog > p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.permission-steps {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #444;
+  border-bottom: 1px solid #eee;
+}
+
+.step:last-child {
+  border-bottom: none;
+}
+
+.step-num {
+  width: 22px;
+  height: 22px;
+  background: #4285F4;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.permission-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-retry {
+  flex: 1;
+  padding: 12px;
+  background: #4285F4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-retry:hover {
+  background: #3367d6;
+}
+
+.btn-dismiss {
+  flex: 1;
+  padding: 12px;
+  background: #f0f0f0;
+  color: #555;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-dismiss:hover {
+  background: #e0e0e0;
+}
+
+/* 定位中 toast */
+.locating-toast {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.72);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.locating-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
