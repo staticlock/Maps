@@ -155,7 +155,7 @@ const handleClearRoute = () => {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* 桌面端布局 - 默认样式 */
+/* ====== 桌面端布局（默认）====== */
 .top-controls {
   position: absolute;
   top: 24px;
@@ -164,6 +164,18 @@ const handleClearRoute = () => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+}
+
+.top-controls :deep(.search-box) {
+  width: 420px;
+}
+
+.top-controls :deep(.search-input-wrapper) {
+  padding: 12px 20px;
+}
+
+.top-controls :deep(.search-input-wrapper input) {
+  font-size: 16px;
 }
 
 .navigate-btn {
@@ -184,29 +196,6 @@ const handleClearRoute = () => {
   background: #e55a25;
   box-shadow: 0 4px 16px rgba(255, 107, 53, 0.5);
   transform: translateY(-1px);
-}
-
-/* 滑入动画 */
-.slide-in-enter-active,
-.slide-in-leave-active {
-  transition: all 0.25s ease;
-}
-.slide-in-enter-from,
-.slide-in-leave-to {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-.top-controls :deep(.search-box) {
-  width: 420px;
-}
-
-.top-controls :deep(.search-input-wrapper) {
-  padding: 12px 20px;
-}
-
-.top-controls :deep(.search-input-wrapper input) {
-  font-size: 16px;
 }
 
 .side-controls {
@@ -238,6 +227,7 @@ const handleClearRoute = () => {
   color: #555;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  white-space: nowrap;
 }
 
 .separator {
@@ -245,107 +235,144 @@ const handleClearRoute = () => {
   color: #ddd;
 }
 
-/* 平板端适配 */
-@media (max-width: 1024px) {
-  .top-controls {
-    top: 20px;
-    left: 20px;
-  }
-
-  .top-controls :deep(.search-box) {
-    width: 360px;
-  }
-
-  .side-controls {
-    top: 20px;
-    right: 20px;
-  }
-
-  .side-controls :deep(.panel-content),
-  .side-controls :deep(.measure-result),
-  .side-controls :deep(.measure-tip) {
-    top: 70px;
-    right: 20px;
-  }
+/* 滑入动画 */
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: all 0.25s ease;
+}
+.slide-in-enter-from,
+.slide-in-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
 }
 
-/* 移动端适配 */
+/* ====== 平板端（≤1024px）====== */
+@media (max-width: 1024px) {
+  .top-controls :deep(.search-box) { width: 320px; }
+  .side-controls :deep(.location-btn),
+  .side-controls :deep(.measure-btn),
+  .side-controls :deep(.route-btn) { padding: 10px 16px; font-size: 14px; }
+}
+
+/* ====== 手机端（≤768px）====== */
 @media (max-width: 768px) {
+  /* 顶部搜索栏：全宽 + 安全区 */
   .top-controls {
     top: 12px;
     left: 12px;
     right: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
   }
 
   .top-controls :deep(.search-box) {
-    width: 100%;
+    flex: 1;
+    width: auto;
+    min-width: 0;
     max-width: none;
   }
 
   .top-controls :deep(.search-input-wrapper) {
-    padding: 10px 16px;
+    padding: 10px 14px;
+    border-radius: 20px;
   }
 
   .top-controls :deep(.search-input-wrapper input) {
     font-size: 15px;
   }
 
+  .navigate-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 20px;
+  }
+
+  /* 工具按钮：移到右下角，垂直排列，圆形图标按钮 */
   .side-controls {
     top: auto;
-    bottom: 70px;
     right: 12px;
+    bottom: 80px;
     flex-direction: column;
     gap: 10px;
+    align-items: flex-end;
   }
 
   .side-controls :deep(.location-btn),
   .side-controls :deep(.measure-btn),
   .side-controls :deep(.route-btn) {
-    padding: 10px 14px;
-    font-size: 13px;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 20px;
   }
 
+  /* 手机上只显示图标，隐藏文字 */
   .side-controls :deep(.btn-text) {
     display: none;
   }
 
+  .side-controls :deep(.btn-icon) {
+    font-size: 22px;
+    margin: 0;
+  }
+
+  /* 面板从底部弹出，全宽 */
   .side-controls :deep(.panel-content) {
-    position: fixed;
-    top: auto;
-    bottom: 140px;
-    right: 12px;
-    left: 12px;
-    width: auto;
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+    max-height: 80vh;
+    overflow-y: auto;
   }
 
   .side-controls :deep(.measure-result) {
-    position: fixed;
-    top: auto;
-    bottom: 140px;
-    right: 12px;
-    left: auto;
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
   }
 
   .side-controls :deep(.measure-tip) {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 80px !important;
+    right: 70px !important;
+    left: auto !important;
+    font-size: 13px;
+  }
+
+  /* 搜索结果下拉框宽度修正 */
+  .top-controls :deep(.search-results) {
     position: fixed;
-    top: auto;
-    bottom: 140px;
+    top: 68px;
+    left: 12px;
     right: 12px;
-    left: auto;
+    max-height: 50vh;
   }
 
+  /* 底部版权信息 */
   .bottom-info {
-    bottom: 12px;
+    bottom: 8px;
     font-size: 11px;
-    padding: 8px 16px;
+    padding: 6px 14px;
   }
 
-  .separator {
-    margin: 0 8px;
-  }
+  .separator { margin: 0 6px; }
 }
 
-/* 小屏手机适配 */
+/* ====== 小屏手机（≤480px）====== */
 @media (max-width: 480px) {
   .top-controls {
     top: 10px;
@@ -354,28 +381,21 @@ const handleClearRoute = () => {
   }
 
   .side-controls {
-    bottom: 60px;
     right: 10px;
-    gap: 8px;
+    bottom: 72px;
   }
 
   .side-controls :deep(.location-btn),
   .side-controls :deep(.measure-btn),
   .side-controls :deep(.route-btn) {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-
-  .side-controls :deep(.panel-content) {
-    right: 10px;
-    left: 10px;
-    bottom: 120px;
+    width: 44px;
+    height: 44px;
   }
 
   .bottom-info {
-    bottom: 10px;
+    bottom: 6px;
     font-size: 10px;
-    padding: 6px 12px;
+    padding: 5px 12px;
   }
 }
 </style>

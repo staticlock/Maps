@@ -300,13 +300,20 @@ watch(() => props.routeData, (newVal) => {
     routeStart.value = newVal.start
     routeEnd.value = newVal.end
 
-    // 调整视野以显示完整路线
-    if (mapRef.value && newVal.bounds) {
-      // 简单处理：设置中心点
-      const midLat = (newVal.start[0] + newVal.end[0]) / 2
-      const midLng = (newVal.start[1] + newVal.end[1]) / 2
-      center.value = [midLat, midLng]
-      zoom.value = 12
+    // 用 Leaflet 实例 fitBounds 展示完整路线
+    const leafletMap = mapRef.value?.leafletObject
+    if (leafletMap && newVal.geometry?.coordinates?.length) {
+      try {
+        // GeoJSON coordinates 是 [lng, lat]，转换为 Leaflet 需要的 [lat, lng]
+        const coords = newVal.geometry.coordinates.map(c => [c[1], c[0]])
+        const bounds = L.latLngBounds(coords)
+        leafletMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 })
+      } catch {
+        // fallback：跳到中点
+        const midLat = (newVal.start[0] + newVal.end[0]) / 2
+        const midLng = (newVal.start[1] + newVal.end[1]) / 2
+        leafletMap.flyTo([midLat, midLng], 13, { duration: 1 })
+      }
     }
   }
 }, { deep: true })
