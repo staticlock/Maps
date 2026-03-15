@@ -70,11 +70,16 @@ const clearMeasure = () => {
   emit('clear')
 }
 
+// 仅重置UI状态，不触发事件（供外部调用避免循环）
+const resetState = () => {
+  isActive.value = false
+  measureResult.value = null
+}
+
 const setResult = (data) => {
   if (data.points && data.points.length === 2) {
     const [start, end] = data.points
     const distance = calculateDistance(start[0], start[1], end[0], end[1])
-
     measureResult.value = {
       distance: formatDistance(distance),
       start: data.start,
@@ -91,7 +96,8 @@ const formatCoord = (coord) => {
 
 defineExpose({
   setResult,
-  clearMeasure
+  clearMeasure,
+  resetState
 })
 </script>
 

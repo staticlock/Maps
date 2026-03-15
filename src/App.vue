@@ -10,6 +10,7 @@ import RoutePanel from './components/map/RoutePanel.vue'
 const mapRef = ref(null)
 const locationBtnRef = ref(null)
 const distanceToolRef = ref(null)
+const routePanelRef = ref(null)
 
 // 状态
 const searchResult = ref(null)
@@ -61,6 +62,8 @@ const handleMeasureToggle = (active) => {
   if (active) {
     distancePoints.value = []
     mapRef.value?.clearDistance()
+    // 关闭路线规划面板（不触发事件）
+    routePanelRef.value?.closePanel()
   }
 }
 
@@ -75,6 +78,7 @@ const handleMeasureClear = () => {
   measureMode.value = false
   distancePoints.value = []
   mapRef.value?.clearDistance()
+  distanceToolRef.value?.resetState()
 }
 
 // 地图点击
@@ -112,7 +116,8 @@ const handleClearRoute = () => {
       <DistanceTool ref="distanceToolRef" :points="distancePoints" @toggle="handleMeasureToggle"
         @clear="handleMeasureClear" />
 
-      <RoutePanel :current-location="currentLocationArray" :map-click-coord="mapClickCoord"
+      <RoutePanel ref="routePanelRef" :current-location="currentLocationArray" :map-click-coord="mapClickCoord"
+        @open="handleMeasureClear"
         @route-planned="handleRoutePlanned" @clear-route="handleClearRoute" />
     </div>
 

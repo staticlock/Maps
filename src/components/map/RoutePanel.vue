@@ -83,7 +83,7 @@ const props = defineProps({
   mapClickCoord: Object
 })
 
-const emit = defineEmits(['route-planned', 'clear-route'])
+const emit = defineEmits(['route-planned', 'clear-route', 'open'])
 
 const showPanel = ref(false)
 const selectedMode = ref('driving')
@@ -108,7 +108,9 @@ const canPlan = computed(() => {
 
 const togglePanel = () => {
   showPanel.value = !showPanel.value
-  if (!showPanel.value) {
+  if (showPanel.value) {
+    emit('open')
+  } else {
     activeInput.value = null
   }
 }
@@ -169,6 +171,13 @@ const clearRoute = () => {
   emit('clear-route')
 }
 
+// 切换交通方式时，若已有路线则自动重新规划
+watch(selectedMode, () => {
+  if (routeInfo.value && canPlan.value) {
+    planRoute()
+  }
+})
+
 // 监听地图点击，设置起点或终点
 watch(() => props.mapClickCoord, async (coord) => {
   if (!coord || !showPanel.value || !activeInput.value) return
@@ -186,7 +195,8 @@ watch(() => props.mapClickCoord, async (coord) => {
 })
 
 defineExpose({
-  showPanel
+  showPanel,
+  closePanel: () => { showPanel.value = false; activeInput.value = null }
 })
 </script>
 
