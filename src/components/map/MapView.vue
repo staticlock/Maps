@@ -1,9 +1,15 @@
 <template>
   <div class="map-container">
-    <l-map ref="mapRef" v-model:zoom="zoom" v-model:center="center" :use-global-leaflet="false"
+    <l-map
+      ref="mapRef"
+      v-model:zoom="zoom"
+      v-model:center="center"
+      :use-global-leaflet="false"
       :options="{ zoomControl: false }"
+      style="width:100%;height:100%"
       @click="handleMapClick"
-      @ready="onMapReady">
+      @ready="onMapReady"
+    >
       <!-- 地图图层 -->
       <l-tile-layer :url="tileUrl" :attribution="attribution" layer-type="base" name="OpenStreetMap" />
 
@@ -189,6 +195,11 @@ const routeOptions = {
 // 地图准备就绪后自动定位
 const onMapReady = async () => {
   await nextTick()
+  // 强制 Leaflet 重新计算容器尺寸（手机端关键）
+  const leafletMap = mapRef.value?.leafletObject
+  if (leafletMap) {
+    leafletMap.invalidateSize()
+  }
   getCurrentLocation().catch(() => {})
 }
 
@@ -355,8 +366,8 @@ onMounted(() => {
 <style scoped>
 .map-container {
   width: 100%;
-  height: 100%;
-  height: 100dvh;
+  height: 100vh; /* 兼容旧版浏览器 */
+  height: 100dvh; /* 现代手机浏览器动态视口 */
   position: relative;
 }
 
@@ -364,6 +375,9 @@ onMounted(() => {
 :deep(.leaflet-container) {
   width: 100% !important;
   height: 100% !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
 }
 
 .popup-content {

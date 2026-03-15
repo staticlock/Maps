@@ -143,7 +143,7 @@ const handleClearRoute = () => {
 <style>
 .app-container {
   width: 100%;
-  height: 100%;
+  height: 100vh;
   height: 100dvh;
   position: relative;
   overflow: hidden;

@@ -8,7 +8,7 @@ html,
 body,
 #app {
   width: 100%;
-  height: 100%;
-  height: 100dvh; /* 手机端动态视口高度，避免地址栏遮挡 */
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
